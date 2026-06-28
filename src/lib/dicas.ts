@@ -36,9 +36,10 @@ export function gerarDicas({
       .reduce((acc, l) => acc + Number(l.valor_realizado ?? l.valor_previsto ?? 0), 0);
   }
 
-  // 1) categorias variaveis que dispararam vs media dos meses anteriores
+  // 1) categorias fixas e variaveis que dispararam vs media dos meses anteriores
   const categoriasVariaveis = categorias.filter((c) => c.tipo === "variavel");
-  for (const cat of categoriasVariaveis) {
+  const categoriasFixas = categorias.filter((c) => c.tipo === "fixa");
+  for (const cat of [...categoriasVariaveis, ...categoriasFixas]) {
     if (mesesAnteriores.length < 2) break;
     const valoresAnteriores = mesesAnteriores.map((ref) => totalCategoriaNoMes(cat.nome, ref)).filter((v) => v > 0);
     if (valoresAnteriores.length < 2) continue;
@@ -46,11 +47,46 @@ export function gerarDicas({
     const atual = totalCategoriaNoMes(cat.nome, mesRef);
     if (media > 0 && atual > media * 1.2) {
       const pctAumento = ((atual - media) / media) * 100;
+      const isFixa = cat.tipo === "fixa";
       dicas.push({
         titulo: `${cat.nome} acima do normal`,
-        texto: `Este mês você gastou ${fmtBRL(atual)} em "${cat.nome}", ${fmtPct(pctAumento)} acima da média dos últimos ${valoresAnteriores.length} meses (${fmtBRL(media)}). Vale revisar o que mudou.`,
+        texto: isFixa
+          ? `Sua conta fixa "${cat.nome}" subiu para ${fmtBRL(atual)}, ${fmtPct(pctAumento)} acima da média dos últimos ${valoresAnteriores.length} meses (${fmtBRL(media)}). Como é um custo recorrente, vale ligar pro fornecedor e renegociar ou cotar a concorrência.`
+          : `Este mês você gastou ${fmtBRL(atual)} em "${cat.nome}", ${fmtPct(pctAumento)} acima da média dos últimos ${valoresAnteriores.length} meses (${fmtBRL(media)}). Vale revisar o que mudou.`,
         tipo: "economia",
       });
+    }
+  }
+
+  // 1b) custos fixos como % da renda (regra 50/30/20) + maiores contribuintes
+  const receitaMesFixas = lancamentosAno
+    .filter((l) => l.mes_ref === mesRef && l.tipo === "receita")
+    .reduce((acc, l) => acc + Number(l.valor_realizado ?? l.valor_previsto ?? 0), 0);
+  const gastosFixosMes = categoriasFixas
+    .map((cat) => ({ cat, valor: totalCategoriaNoMes(cat.nome, mesRef) }))
+    .filter((x) => x.valor > 0)
+    .sort((a, b) => b.valor - a.valor);
+  const totalFixoMes = gastosFixosMes.reduce((acc, x) => acc + x.valor, 0);
+
+  if (receitaMesFixas > 0 && totalFixoMes > 0) {
+    const pctFixoRenda = (totalFixoMes / receitaMesFixas) * 100;
+    if (pctFixoRenda > 50) {
+      const top3 = gastosFixosMes.slice(0, 3).map((x) => `${x.cat.nome} (${fmtBRL(x.valor)})`).join(", ");
+      dicas.push({
+        titulo: "Custos fixos consomem mais da metade da renda",
+        texto: `Seus custos fixos somam ${fmtBRL(totalFixoMes)}, ${fmtPct(pctFixoRenda)} da renda do mês — acima dos ~50% recomendados para gastos essenciais. Os maiores são: ${top3}. Renegociar ou trocar de fornecedor nesses itens tem o maior impacto, pois economiza todo mês, não só uma vez.`,
+        tipo: "economia",
+      });
+    } else if (gastosFixosMes.length > 0) {
+      const maior = gastosFixosMes[0];
+      const pctDoMaior = (maior.valor / receitaMesFixas) * 100;
+      if (pctDoMaior > 15) {
+        dicas.push({
+          titulo: `"${maior.cat.nome}" é seu maior custo fixo`,
+          texto: `Representa ${fmtBRL(maior.valor)}, ${fmtPct(pctDoMaior)} da sua renda mensal. Por ser recorrente, vale cotar alternativas ou renegociar uma vez por ano — a economia se repete todo mês.`,
+          tipo: "economia",
+        });
+      }
     }
   }
 

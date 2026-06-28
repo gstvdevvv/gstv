@@ -77,8 +77,29 @@ export default async function DashboardPage() {
     .sort((a, b) => b.valor - a.valor)
     .slice(0, 10);
 
+  // custos fixos do mes, por categoria (para o card de analise e alertas)
+  const fixosPorCategoria = new Map<string, number>();
+  for (const l of lancamentosMesAtual) {
+    if (l.tipo !== "despesa") continue;
+    const cat = l.categoria_id ? categoriaPorId.get(l.categoria_id) : null;
+    if (cat?.tipo !== "fixa") continue;
+    fixosPorCategoria.set(cat.nome, (fixosPorCategoria.get(cat.nome) ?? 0) + Number(l.valor_realizado ?? l.valor_previsto ?? 0));
+  }
+  const fixosDados = Array.from(fixosPorCategoria.entries())
+    .map(([categoria, valor]) => ({ categoria, valor, pctRenda: receitaMes > 0 ? (valor / receitaMes) * 100 : 0 }))
+    .sort((a, b) => b.valor - a.valor);
+  const totalFixoMes = fixosDados.reduce((acc, x) => acc + x.valor, 0);
+  const pctFixoRenda = receitaMes > 0 ? (totalFixoMes / receitaMes) * 100 : 0;
+
   // alertas
   const alertas: { texto: string; tipo: "alerta" | "info" }[] = [];
+
+  if (receitaMes > 0 && pctFixoRenda > 50) {
+    alertas.push({
+      texto: `Custos fixos consomem ${fmtPct(pctFixoRenda)} da renda do mês (recomendado: até 50%). Maior item: "${fixosDados[0]?.categoria}" (${fmtBRL(fixosDados[0]?.valor ?? 0)}).`,
+      tipo: "alerta",
+    });
+  }
 
   for (const cat of categorias.filter((c) => c.tipo === "variavel" && c.limite_padrao)) {
     const gasto = porCategoria.get(cat.nome) ?? 0;
@@ -178,6 +199,37 @@ export default async function DashboardPage() {
           )}
         </div>
       </div>
+
+      {fixosDados.length > 0 && (
+        <div className="card p-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="label-eyebrow">Custos fixos — {MESES[idxMesAtual]}</p>
+            <p className={`text-sm font-medium num ${pctFixoRenda > 50 ? "text-[var(--danger)]" : "text-[var(--muted)]"}`}>
+              {fmtBRL(totalFixoMes)} · {fmtPct(pctFixoRenda)} da renda
+            </p>
+          </div>
+          <div className="flex flex-col gap-2.5">
+            {fixosDados.map((f) => (
+              <div key={f.categoria} className="flex flex-col gap-1">
+                <div className="flex items-center justify-between text-sm">
+                  <span>{f.categoria}</span>
+                  <span className="num text-[var(--muted)]">{fmtBRL(f.valor)} · {fmtPct(f.pctRenda)}</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-[var(--bg-soft)] overflow-hidden">
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: `${Math.min(100, f.pctRenda * 2)}%`, background: "var(--primary)" }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-[var(--muted)] mt-3">
+            Custos fixos são os que mais valem renegociar — a economia se repete todo mês. Veja sugestões em{" "}
+            <a href="/dicas" className="underline">Dicas</a>.
+          </p>
+        </div>
+      )}
 
       <div className="card p-4 overflow-x-auto">
         <p className="label-eyebrow mb-3">Resumo mensal — {ano}</p>
