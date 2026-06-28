@@ -28,7 +28,7 @@ export default async function CartoesPage({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold">Cartões de Crédito</h1>
+        <h1 className="font-display text-2xl">Cartões de Crédito</h1>
         <MesSelector mesRef={mesRef} />
       </div>
 
@@ -42,12 +42,12 @@ export default async function CartoesPage({
             <div key={c.id} className="card p-4 w-full sm:w-64 flex flex-col gap-1">
               <div className="flex items-center justify-between">
                 <p className="font-semibold">{c.nome}</p>
-                <form action={async () => { await excluirCartao(c.id); }}>
+                <form action={excluirCartao.bind(null, c.id)}>
                   <button className="text-xs text-[var(--danger)] hover:underline">excluir</button>
                 </form>
               </div>
               <p className="text-xs text-[var(--muted)]">{c.bandeira ?? "—"}</p>
-              <p className="text-xl font-bold mt-1">{fmtBRL(totalFatura)}</p>
+              <p className="text-xl font-display num mt-1">{fmtBRL(totalFatura)}</p>
               {c.limite && (
                 <>
                   <div className="h-1.5 rounded-full bg-[var(--bg-soft)] overflow-hidden">
@@ -69,12 +69,12 @@ export default async function CartoesPage({
       </div>
 
       <div>
-        <p className="font-semibold mb-2">Lançar gasto no cartão</p>
+        <p className="label-eyebrow mb-3">Lançar gasto no cartão</p>
         <NovaCompraForm cartoes={cartoes} categorias={categorias} mesRef={mesRef} />
       </div>
 
       <div className="card p-4 overflow-x-auto">
-        <p className="font-semibold mb-2">Fatura do mês</p>
+        <p className="label-eyebrow mb-3">Fatura do mês</p>
         {gastos.length === 0 ? (
           <p className="text-sm text-[var(--muted)] py-2">Nenhum gasto lançado neste mês.</p>
         ) : (
@@ -98,7 +98,7 @@ export default async function CartoesPage({
                   <td className="py-1.5 pr-2">{new Date(g.data_compra).toLocaleDateString("pt-BR")}</td>
                   <td className="py-1.5 pr-2 text-right">{fmtBRL(g.valor_total)}</td>
                   <td className="py-1.5 pr-2 text-right">
-                    <form action={async () => { await excluirGastoCartao(g.id); }}>
+                    <form action={excluirGastoCartao.bind(null, g.id)}>
                       <button className="text-xs text-[var(--danger)] hover:underline">excluir</button>
                     </form>
                   </td>

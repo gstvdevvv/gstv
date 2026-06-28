@@ -12,6 +12,7 @@ import { fmtBRL, fmtPct, MESES, mesRefAtual, mesRefParaIndice } from "@/lib/util
 import { KpiCard } from "@/components/KpiCard";
 import { EvolucaoMensalChart, type PontoMensal } from "@/components/charts/EvolucaoMensalChart";
 import { CategoriaBarChart, type PontoCategoria } from "@/components/charts/CategoriaBarChart";
+import { BellRing } from "lucide-react";
 
 export default async function DashboardPage() {
   const household = await getCurrentHousehold();
@@ -138,7 +139,7 @@ export default async function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold">Dashboard — {MESES[idxMesAtual]} {ano}</h1>
+        <h1 className="font-display text-2xl">{MESES[idxMesAtual]} {ano}</h1>
         <p className="text-sm text-[var(--muted)]">Visão geral das finanças do casal</p>
       </div>
 
@@ -151,11 +152,13 @@ export default async function DashboardPage() {
       </div>
 
       {alertas.length > 0 && (
-        <div className="card p-4 flex flex-col gap-2">
-          <p className="font-semibold flex items-center gap-2">🔔 Alertas</p>
+        <div className="card p-4 flex flex-col gap-2.5">
+          <p className="label-eyebrow flex items-center gap-1.5">
+            <BellRing size={13} /> Alertas
+          </p>
           {alertas.map((a, i) => (
             <p key={i} className={`text-sm ${a.tipo === "alerta" ? "text-[var(--danger)]" : "text-[var(--muted)]"}`}>
-              • {a.texto}
+              {a.texto}
             </p>
           ))}
         </div>
@@ -163,11 +166,11 @@ export default async function DashboardPage() {
 
       <div className="grid md:grid-cols-2 gap-4">
         <div className="card p-4">
-          <p className="font-semibold mb-2">Evolução anual</p>
+          <p className="label-eyebrow mb-3">Evolução anual</p>
           <EvolucaoMensalChart dados={evolucao} />
         </div>
         <div className="card p-4">
-          <p className="font-semibold mb-2">Gastos por categoria — {MESES[idxMesAtual]}</p>
+          <p className="label-eyebrow mb-3">Gastos por categoria — {MESES[idxMesAtual]}</p>
           {categoriaDados.length > 0 ? (
             <CategoriaBarChart dados={categoriaDados} />
           ) : (
@@ -177,31 +180,31 @@ export default async function DashboardPage() {
       </div>
 
       <div className="card p-4 overflow-x-auto">
-        <p className="font-semibold mb-3">Resumo mensal — {ano}</p>
+        <p className="label-eyebrow mb-3">Resumo mensal — {ano}</p>
         <table className="w-full text-sm min-w-[720px]">
           <thead>
             <tr className="text-left text-[var(--muted)] border-b border-[var(--border)]">
-              <th className="py-2 pr-2">Mês</th>
-              <th className="py-2 pr-2 text-right">Receita</th>
-              <th className="py-2 pr-2 text-right">Fixas</th>
-              <th className="py-2 pr-2 text-right">Variáveis</th>
-              <th className="py-2 pr-2 text-right">Dívidas</th>
-              <th className="py-2 pr-2 text-right">Investido</th>
-              <th className="py-2 pr-2 text-right">Saldo</th>
-              <th className="py-2 pr-2 text-right">% Poupança</th>
+              <th className="py-2 pr-2 font-normal">Mês</th>
+              <th className="py-2 pr-2 text-right font-normal">Receita</th>
+              <th className="py-2 pr-2 text-right font-normal">Fixas</th>
+              <th className="py-2 pr-2 text-right font-normal">Variáveis</th>
+              <th className="py-2 pr-2 text-right font-normal">Dívidas</th>
+              <th className="py-2 pr-2 text-right font-normal">Investido</th>
+              <th className="py-2 pr-2 text-right font-normal">Saldo</th>
+              <th className="py-2 pr-2 text-right font-normal">% Poupança</th>
             </tr>
           </thead>
           <tbody>
             {resumoAnual.map((r) => (
-              <tr key={r.mes} className={`border-b border-[var(--border)]/40 ${r.idx === idxMesAtual ? "bg-[var(--bg-soft)]" : ""}`}>
+              <tr key={r.mes} className={`border-b border-[var(--border-soft)] ${r.idx === idxMesAtual ? "bg-[var(--bg-soft)]" : ""}`}>
                 <td className="py-1.5 pr-2">{r.mes}</td>
-                <td className="py-1.5 pr-2 text-right text-[var(--receita)]">{fmtBRL(r.receita)}</td>
-                <td className="py-1.5 pr-2 text-right">{fmtBRL(r.fixas)}</td>
-                <td className="py-1.5 pr-2 text-right">{fmtBRL(r.variaveis)}</td>
-                <td className="py-1.5 pr-2 text-right text-[var(--divida)]">{fmtBRL(r.dividas)}</td>
-                <td className="py-1.5 pr-2 text-right text-[var(--invest)]">{fmtBRL(r.investido)}</td>
-                <td className={`py-1.5 pr-2 text-right font-semibold ${r.saldo >= 0 ? "text-[var(--receita)]" : "text-[var(--despesa)]"}`}>{fmtBRL(r.saldo)}</td>
-                <td className="py-1.5 pr-2 text-right">{fmtPct(r.poupanca)}</td>
+                <td className="py-1.5 pr-2 text-right num text-[var(--receita)]">{fmtBRL(r.receita)}</td>
+                <td className="py-1.5 pr-2 text-right num">{fmtBRL(r.fixas)}</td>
+                <td className="py-1.5 pr-2 text-right num">{fmtBRL(r.variaveis)}</td>
+                <td className="py-1.5 pr-2 text-right num text-[var(--divida)]">{fmtBRL(r.dividas)}</td>
+                <td className="py-1.5 pr-2 text-right num text-[var(--invest)]">{fmtBRL(r.investido)}</td>
+                <td className={`py-1.5 pr-2 text-right num font-semibold ${r.saldo >= 0 ? "text-[var(--receita)]" : "text-[var(--despesa)]"}`}>{fmtBRL(r.saldo)}</td>
+                <td className="py-1.5 pr-2 text-right num">{fmtPct(r.poupanca)}</td>
               </tr>
             ))}
           </tbody>

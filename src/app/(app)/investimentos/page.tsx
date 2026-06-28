@@ -5,6 +5,7 @@ import { MesSelector } from "@/components/MesSelector";
 import { NovoAporteForm } from "./NovoAporteForm";
 import { excluirAporte } from "./actions";
 import { PatrimonioChart } from "@/components/charts/PatrimonioChart";
+import { KpiCard } from "@/components/KpiCard";
 
 export default async function InvestimentosPage({
   searchParams,
@@ -18,16 +19,7 @@ export default async function InvestimentosPage({
   const mesRef = mes || mesRefAtual();
   const ano = Number(mesRef.split("-")[0]);
 
-  let investimentosAno: Awaited<ReturnType<typeof getInvestimentosDoAno>> = [];
-  try {
-    investimentosAno = await getInvestimentosDoAno(household.householdId, ano);
-  } catch (err) {
-    return (
-      <pre className="card p-4 text-xs text-[var(--danger)] whitespace-pre-wrap">
-        DEBUG InvestimentosPage: {err instanceof Error ? `${err.message}\n${err.stack}` : String(err)}
-      </pre>
-    );
-  }
+  const investimentosAno = await getInvestimentosDoAno(household.householdId, ano);
   const doMes = investimentosAno.filter((i) => i.mes_ref === mesRef);
 
   let acumulado = 0;
@@ -46,34 +38,25 @@ export default async function InvestimentosPage({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold">Investimentos</h1>
+        <h1 className="font-display text-2xl">Investimentos</h1>
         <MesSelector mesRef={mesRef} />
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        <div className="card p-4">
-          <p className="text-xs uppercase text-[var(--muted)]">Planejado no mês</p>
-          <p className="text-2xl font-bold">{fmtBRL(totalPlanejadoMes)}</p>
-        </div>
-        <div className="card p-4">
-          <p className="text-xs uppercase text-[var(--muted)]">Aportado no mês</p>
-          <p className="text-2xl font-bold" style={{ color: "var(--invest)" }}>{fmtBRL(totalAportadoMes)}</p>
-        </div>
-        <div className="card p-4">
-          <p className="text-xs uppercase text-[var(--muted)]">Patrimônio acumulado no ano</p>
-          <p className="text-2xl font-bold" style={{ color: "var(--receita)" }}>{fmtBRL(acumulado)}</p>
-        </div>
+        <KpiCard titulo="Planejado no mês" valor={fmtBRL(totalPlanejadoMes)} />
+        <KpiCard titulo="Aportado no mês" valor={fmtBRL(totalAportadoMes)} cor="var(--invest)" />
+        <KpiCard titulo="Patrimônio acumulado no ano" valor={fmtBRL(acumulado)} cor="var(--receita)" />
       </div>
 
       <div className="card p-4">
-        <p className="font-semibold mb-2">Evolução patrimonial — {ano}</p>
+        <p className="label-eyebrow mb-3">Evolução patrimonial — {ano}</p>
         <PatrimonioChart dados={evolucao} />
       </div>
 
       <NovoAporteForm mesRef={mesRef} />
 
       <div className="card p-4 overflow-x-auto">
-        <p className="font-semibold mb-2">Aportes do mês</p>
+        <p className="label-eyebrow mb-3">Aportes do mês</p>
         {doMes.length === 0 ? (
           <p className="text-sm text-[var(--muted)] py-2">Nenhum aporte lançado neste mês.</p>
         ) : (
@@ -93,7 +76,7 @@ export default async function InvestimentosPage({
                   <td className="py-1.5 pr-2 text-right">{fmtBRL(i.valor_planejado)}</td>
                   <td className="py-1.5 pr-2 text-right">{fmtBRL(i.valor_aportado)}</td>
                   <td className="py-1.5 pr-2 text-right">
-                    <form action={async () => { await excluirAporte(i.id); }}>
+                    <form action={excluirAporte.bind(null, i.id)}>
                       <button className="text-xs text-[var(--danger)] hover:underline">excluir</button>
                     </form>
                   </td>

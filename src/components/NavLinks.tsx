@@ -2,37 +2,46 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  Receipt,
+  CreditCard,
+  TrendingDown,
+  PiggyBank,
+  Lightbulb,
+  Settings,
+} from "lucide-react";
 
 const LINKS = [
-  { href: "/", label: "Dashboard", icon: "📊" },
-  { href: "/lancamentos", label: "Lançamentos", icon: "📝" },
-  { href: "/cartoes", label: "Cartões", icon: "💳" },
-  { href: "/dividas", label: "Dívidas", icon: "📉" },
-  { href: "/investimentos", label: "Investimentos", icon: "📈" },
-  { href: "/dicas", label: "Dicas", icon: "💡" },
-  { href: "/configuracoes", label: "Configurações", icon: "⚙️" },
+  { href: "/", label: "Dashboard", Icon: LayoutDashboard },
+  { href: "/lancamentos", label: "Lançamentos", Icon: Receipt },
+  { href: "/cartoes", label: "Cartões", Icon: CreditCard },
+  { href: "/dividas", label: "Dívidas", Icon: TrendingDown },
+  { href: "/investimentos", label: "Investimentos", Icon: PiggyBank },
+  { href: "/dicas", label: "Dicas", Icon: Lightbulb },
+  { href: "/configuracoes", label: "Configurações", Icon: Settings },
 ];
 
 export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-col gap-1">
-      {LINKS.map((link) => {
-        const ativo = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
+    <nav className="flex flex-col gap-0.5">
+      {LINKS.map(({ href, label, Icon }) => {
+        const ativo = href === "/" ? pathname === "/" : pathname.startsWith(href);
         return (
           <Link
-            key={link.href}
-            href={link.href}
+            key={href}
+            href={href}
             onClick={onNavigate}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+            className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
               ativo
-                ? "bg-[var(--primary)] text-[#06231a] font-semibold"
+                ? "bg-[var(--bg-soft)] text-[var(--primary)] font-medium"
                 : "text-[var(--muted)] hover:bg-[var(--bg-soft)] hover:text-[var(--foreground)]"
             }`}
           >
-            <span>{link.icon}</span>
-            <span>{link.label}</span>
+            <Icon size={17} strokeWidth={1.75} />
+            <span>{label}</span>
           </Link>
         );
       })}

@@ -38,9 +38,8 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <form onSubmit={entrar} className="card w-full max-w-sm p-8 flex flex-col gap-4">
         <div className="text-center mb-2">
-          <p className="text-3xl mb-1">💰</p>
-          <h1 className="text-xl font-bold">Financeiro</h1>
-          <p className="text-sm text-[var(--muted)]">Controle financeiro do casal</p>
+          <h1 className="font-display text-2xl">Financeiro</h1>
+          <p className="text-sm text-[var(--muted)] mt-1">Controle financeiro do casal</p>
         </div>
 
         <div className="flex flex-col gap-1">

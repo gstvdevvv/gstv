@@ -4,6 +4,8 @@ import { calcularPlano, ordenarPorPrioridade } from "@/lib/planoPagamento";
 import { fmtBRL, mesRefLabel } from "@/lib/utils";
 import { NovaDividaForm } from "./NovaDividaForm";
 import { DividaCard } from "./DividaCard";
+import { KpiCard } from "@/components/KpiCard";
+import { ListOrdered } from "lucide-react";
 
 export default async function DividasPage() {
   const household = await getCurrentHousehold();
@@ -29,28 +31,21 @@ export default async function DividasPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold">Dívidas</h1>
+        <h1 className="font-display text-2xl">Dívidas</h1>
         <NovaDividaForm />
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        <div className="card p-4">
-          <p className="text-xs uppercase text-[var(--muted)]">Saldo devedor total</p>
-          <p className="text-2xl font-bold" style={{ color: "var(--divida)" }}>{fmtBRL(saldoTotal)}</p>
-        </div>
-        <div className="card p-4">
-          <p className="text-xs uppercase text-[var(--muted)]">Já pago</p>
-          <p className="text-2xl font-bold" style={{ color: "var(--receita)" }}>{fmtBRL(pagoTotal)}</p>
-        </div>
-        <div className="card p-4">
-          <p className="text-xs uppercase text-[var(--muted)]">Quitação total prevista</p>
-          <p className="text-2xl font-bold">{mesQuitacaoGeral ? mesRefLabel(mesQuitacaoGeral) : "—"}</p>
-        </div>
+        <KpiCard titulo="Saldo devedor total" valor={fmtBRL(saldoTotal)} cor="var(--divida)" />
+        <KpiCard titulo="Já pago" valor={fmtBRL(pagoTotal)} cor="var(--receita)" />
+        <KpiCard titulo="Quitação total prevista" valor={mesQuitacaoGeral ? mesRefLabel(mesQuitacaoGeral) : "—"} />
       </div>
 
       {prioridades.length > 0 && (
         <div className="card p-4">
-          <p className="font-semibold mb-1">📌 Ordem sugerida de pagamento</p>
+          <p className="label-eyebrow mb-1.5 flex items-center gap-1.5">
+            <ListOrdered size={13} /> Ordem sugerida de pagamento
+          </p>
           <p className="text-sm text-[var(--muted)]">
             Prioriza dívidas sem negociação e, entre as negociadas, as de menor saldo primeiro (método bola de neve) —
             quita mais rápido e libera fôlego no orçamento.

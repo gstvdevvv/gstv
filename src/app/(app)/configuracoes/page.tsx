@@ -15,24 +15,14 @@ export default async function ConfiguracoesPage() {
   const household = await getCurrentHousehold();
   if (!household) return null;
 
-  let categorias: Awaited<ReturnType<typeof getCategorias>> = [];
-  let config: Awaited<ReturnType<typeof getConfig>> = { meta_poupanca_pct: 20, alerta_limite_pct: 90 };
-  try {
-    [categorias, config] = await Promise.all([
-      getCategorias(household.householdId),
-      getConfig(household.householdId),
-    ]);
-  } catch (err) {
-    return (
-      <pre className="card p-4 text-xs text-[var(--danger)] whitespace-pre-wrap">
-        DEBUG ConfiguracoesPage: {err instanceof Error ? `${err.message}\n${err.stack}` : String(err)}
-      </pre>
-    );
-  }
+  const [categorias, config] = await Promise.all([
+    getCategorias(household.householdId),
+    getConfig(household.householdId),
+  ]);
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold">Configurações</h1>
+      <h1 className="font-display text-2xl">Configurações</h1>
 
       <div className="card p-4">
         <p className="font-semibold mb-1">Household</p>
@@ -72,7 +62,7 @@ export default async function ConfiguracoesPage() {
                 {categorias.filter((c) => c.tipo === tipo).map((c) => (
                   <li key={c.id} className="flex items-center justify-between text-sm border-b border-[var(--border)]/40 py-1">
                     <span>{c.nome}{c.limite_padrao ? ` — limite ${fmtBRL(c.limite_padrao)}` : ""}</span>
-                    <form action={async () => { await excluirCategoria(c.id); }}>
+                    <form action={excluirCategoria.bind(null, c.id)}>
                       <button className="text-xs text-[var(--danger)] hover:underline">excluir</button>
                     </form>
                   </li>

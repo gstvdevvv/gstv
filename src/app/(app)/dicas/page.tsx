@@ -2,16 +2,18 @@ import { getCurrentHousehold } from "@/lib/household";
 import { getCategorias, getLancamentosDoAno, getDividas, getPagamentosDivida, getConfig } from "@/lib/queries";
 import { gerarDicas, type Dica } from "@/lib/dicas";
 import { mesRefAtual, MESES, mesRefParaIndice } from "@/lib/utils";
+import { Lightbulb, TrendingDown, Target, BellRing } from "lucide-react";
+import type { ComponentType } from "react";
 
-const ICONES: Record<Dica["tipo"], string> = {
-  economia: "💡",
-  divida: "📉",
-  meta: "🎯",
-  alerta: "🔔",
+const ICONES: Record<Dica["tipo"], ComponentType<{ size?: number; strokeWidth?: number }>> = {
+  economia: Lightbulb,
+  divida: TrendingDown,
+  meta: Target,
+  alerta: BellRing,
 };
 
 const CORES: Record<Dica["tipo"], string> = {
-  economia: "var(--accent)",
+  economia: "var(--primary)",
   divida: "var(--divida)",
   meta: "var(--invest)",
   alerta: "var(--danger)",
@@ -44,7 +46,7 @@ export default async function DicasPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold">💡 Dicas inteligentes</h1>
+        <h1 className="font-display text-2xl">Dicas inteligentes</h1>
         <p className="text-sm text-[var(--muted)]">
           Geradas automaticamente a partir dos seus próprios dados de {MESES[mesRefParaIndice(mesRef)]}.
         </p>
@@ -57,14 +59,17 @@ export default async function DicasPage() {
         </p>
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
-          {dicas.map((d, i) => (
-            <div key={i} className="card p-4 flex flex-col gap-1">
-              <p className="font-semibold flex items-center gap-2" style={{ color: CORES[d.tipo] }}>
-                {ICONES[d.tipo]} {d.titulo}
-              </p>
-              <p className="text-sm text-[var(--muted)]">{d.texto}</p>
-            </div>
-          ))}
+          {dicas.map((d, i) => {
+            const Icon = ICONES[d.tipo];
+            return (
+              <div key={i} className="card p-4 flex flex-col gap-1.5">
+                <p className="font-medium flex items-center gap-2" style={{ color: CORES[d.tipo] }}>
+                  <Icon size={15} strokeWidth={2} /> {d.titulo}
+                </p>
+                <p className="text-sm text-[var(--muted)]">{d.texto}</p>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

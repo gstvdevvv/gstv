@@ -10,9 +10,9 @@ export function KpiCard({
   sub?: string;
 }) {
   return (
-    <div className="card p-4 flex flex-col gap-1">
-      <p className="text-xs uppercase tracking-wide text-[var(--muted)]">{titulo}</p>
-      <p className="text-2xl font-bold" style={cor ? { color: cor } : undefined}>
+    <div className="card p-4 flex flex-col gap-1.5">
+      <p className="label-eyebrow">{titulo}</p>
+      <p className="text-2xl font-display num" style={cor ? { color: cor } : undefined}>
         {valor}
       </p>
       {sub && <p className="text-xs text-[var(--muted)]">{sub}</p>}
