@@ -18,7 +18,16 @@ export default async function InvestimentosPage({
   const mesRef = mes || mesRefAtual();
   const ano = Number(mesRef.split("-")[0]);
 
-  const investimentosAno = await getInvestimentosDoAno(household.householdId, ano);
+  let investimentosAno: Awaited<ReturnType<typeof getInvestimentosDoAno>> = [];
+  try {
+    investimentosAno = await getInvestimentosDoAno(household.householdId, ano);
+  } catch (err) {
+    return (
+      <pre className="card p-4 text-xs text-[var(--danger)] whitespace-pre-wrap">
+        DEBUG InvestimentosPage: {err instanceof Error ? `${err.message}\n${err.stack}` : String(err)}
+      </pre>
+    );
+  }
   const doMes = investimentosAno.filter((i) => i.mes_ref === mesRef);
 
   let acumulado = 0;

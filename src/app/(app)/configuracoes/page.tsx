@@ -15,10 +15,20 @@ export default async function ConfiguracoesPage() {
   const household = await getCurrentHousehold();
   if (!household) return null;
 
-  const [categorias, config] = await Promise.all([
-    getCategorias(household.householdId),
-    getConfig(household.householdId),
-  ]);
+  let categorias: Awaited<ReturnType<typeof getCategorias>> = [];
+  let config: Awaited<ReturnType<typeof getConfig>> = { meta_poupanca_pct: 20, alerta_limite_pct: 90 };
+  try {
+    [categorias, config] = await Promise.all([
+      getCategorias(household.householdId),
+      getConfig(household.householdId),
+    ]);
+  } catch (err) {
+    return (
+      <pre className="card p-4 text-xs text-[var(--danger)] whitespace-pre-wrap">
+        DEBUG ConfiguracoesPage: {err instanceof Error ? `${err.message}\n${err.stack}` : String(err)}
+      </pre>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">
