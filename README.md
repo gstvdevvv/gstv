@@ -1,3 +1,7 @@
+# Financeiro
+
+Sistema de controle financeiro do casal — dashboard, lançamentos, cartões, dívidas, investimentos e dicas inteligentes.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
