@@ -12,7 +12,8 @@ import { fmtBRL, fmtPct, MESES, mesRefAtual, mesRefParaIndice } from "@/lib/util
 import { KpiCard } from "@/components/KpiCard";
 import { EvolucaoMensalChart, type PontoMensal } from "@/components/charts/EvolucaoMensalChart";
 import { CategoriaBarChart, type PontoCategoria } from "@/components/charts/CategoriaBarChart";
-import { BellRing } from "lucide-react";
+import { calcularIndicadores, calcularReserva } from "@/lib/indicadores";
+import { BellRing, ShieldCheck, Gauge } from "lucide-react";
 
 export default async function DashboardPage() {
   const household = await getCurrentHousehold();
@@ -91,6 +92,10 @@ export default async function DashboardPage() {
   const totalFixoMes = fixosDados.reduce((acc, x) => acc + x.valor, 0);
   const pctFixoRenda = receitaMes > 0 ? (totalFixoMes / receitaMes) * 100 : 0;
 
+  // indicadores fixos do ano + reserva de emergencia
+  const indicadores = calcularIndicadores(lancamentosAno, categorias);
+  const reserva = calcularReserva(investimentosAno, indicadores.despesaFixaMediaMensal, config.meses_reserva_meta);
+
   // alertas
   const alertas: { texto: string; tipo: "alerta" | "info" }[] = [];
 
@@ -117,6 +122,13 @@ export default async function DashboardPage() {
     alertas.push({
       texto: `Sua taxa de poupança este mês está em ${fmtPct(percentPoupanca)}, abaixo da meta de ${fmtPct(config.meta_poupanca_pct)}.`,
       tipo: "alerta",
+    });
+  }
+
+  if (indicadores.despesaFixaMediaMensal > 0 && reserva.mesesCobertura < reserva.mesesMeta) {
+    alertas.push({
+      texto: `Reserva de emergência cobre ${reserva.mesesCobertura.toFixed(1)} meses de custo fixo, abaixo da meta de ${reserva.mesesMeta} meses.`,
+      tipo: reserva.mesesCobertura < reserva.mesesMeta / 2 ? "alerta" : "info",
     });
   }
 
@@ -170,6 +182,59 @@ export default async function DashboardPage() {
         <KpiCard titulo="Saldo do mês" valor={fmtBRL(saldoMes)} cor={saldoMes >= 0 ? "var(--receita)" : "var(--despesa)"} sub={fmtPct(percentPoupanca) + " poupado"} />
         <KpiCard titulo="Investido no mês" valor={fmtBRL(investidoMes)} cor="var(--invest)" />
         <KpiCard titulo="Dívidas em aberto" valor={fmtBRL(saldoDividasTotal)} cor="var(--divida)" />
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="card p-4">
+          <p className="label-eyebrow mb-3 flex items-center gap-1.5">
+            <ShieldCheck size={13} /> Reserva de emergência
+          </p>
+          <div className="flex items-baseline justify-between mb-2">
+            <span className="text-lg font-semibold num">{fmtBRL(reserva.reservaAtual)}</span>
+            <span className="text-sm text-[var(--muted)] num">meta {fmtBRL(reserva.metaValor)}</span>
+          </div>
+          <div className="h-2 rounded-full bg-[var(--bg-soft)] overflow-hidden">
+            <div
+              className="h-full rounded-full"
+              style={{ width: `${reserva.pctMeta}%`, background: reserva.pctMeta >= 100 ? "var(--receita)" : "var(--primary)" }}
+            />
+          </div>
+          <p className="text-xs text-[var(--muted)] mt-2">
+            {reserva.mesesCobertura.toFixed(1)} de {reserva.mesesMeta} meses de custo fixo cobertos ({fmtPct(reserva.pctMeta)} da meta).
+          </p>
+        </div>
+
+        <div className="card p-4">
+          <p className="label-eyebrow mb-3 flex items-center gap-1.5">
+            <Gauge size={13} /> Indicadores do ano
+          </p>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <p className="text-[var(--muted)]">Taxa de poupança</p>
+              <p className="num font-semibold">{fmtPct(indicadores.taxaPoupancaPct)}</p>
+            </div>
+            <div>
+              <p className="text-[var(--muted)]">Custos fixos / renda</p>
+              <p className="num font-semibold">{fmtPct(indicadores.pctFixasPct)}</p>
+            </div>
+            <div>
+              <p className="text-[var(--muted)]">Moradia / renda</p>
+              <p className="num font-semibold">{fmtPct(indicadores.pctMoradiaPct)}</p>
+            </div>
+            <div>
+              <p className="text-[var(--muted)]">Alimentação / renda</p>
+              <p className="num font-semibold">{fmtPct(indicadores.pctAlimentacaoPct)}</p>
+            </div>
+            <div>
+              <p className="text-[var(--muted)]">Lazer / renda</p>
+              <p className="num font-semibold">{fmtPct(indicadores.pctLazerPct)}</p>
+            </div>
+            <div>
+              <p className="text-[var(--muted)]">Variáveis / renda</p>
+              <p className="num font-semibold">{fmtPct(indicadores.pctVariaveisPct)}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {alertas.length > 0 && (

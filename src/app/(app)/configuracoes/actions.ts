@@ -40,6 +40,7 @@ export async function atualizarMetas(formData: FormData) {
       household_id: household.householdId,
       meta_poupanca_pct: Number(formData.get("meta_poupanca_pct") || 20),
       alerta_limite_pct: Number(formData.get("alerta_limite_pct") || 90),
+      meses_reserva_meta: Number(formData.get("meses_reserva_meta") || 6),
     });
 
   revalidatePath("/configuracoes");

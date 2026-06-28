@@ -107,7 +107,8 @@ create index investimentos_household_mes_idx on investimentos(household_id, mes_
 create table config (
   household_id uuid primary key references households(id) on delete cascade,
   meta_poupanca_pct numeric not null default 20,
-  alerta_limite_pct numeric not null default 90
+  alerta_limite_pct numeric not null default 90,
+  meses_reserva_meta numeric not null default 6
 );
 
 -- helper: usuario autenticado pertence ao household?
@@ -194,3 +195,6 @@ create policy config_all on config for all using (is_household_member(household_
 --  ('<household-id>','investimento','Previdencia Privada'),
 --  ('<household-id>','investimento','Criptoativos'),
 --  ('<household-id>','investimento','Outros Investimentos');
+
+-- MIGRACAO: meta de reserva de emergencia (rodar 1x no banco existente)
+-- alter table config add column if not exists meses_reserva_meta numeric not null default 6;

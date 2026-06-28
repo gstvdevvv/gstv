@@ -161,7 +161,12 @@ export async function getConfig(householdId: string) {
     .select("*")
     .eq("household_id", householdId)
     .maybeSingle();
-  return data ?? { meta_poupanca_pct: 20, alerta_limite_pct: 90 };
+  return {
+    meta_poupanca_pct: 20,
+    alerta_limite_pct: 90,
+    meses_reserva_meta: 6,
+    ...data,
+  };
 }
 
 export function saldoDivida(divida: Divida, pagamentos: PagamentoDivida[]) {
