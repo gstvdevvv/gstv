@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0b1f1a;
+  --bg-soft: #11281f;
+  --surface: #16332766;
+  --surface-solid: #14302a;
+  --border: #234a3c;
+  --foreground: #eef7f0;
+  --muted: #8fb3a3;
+  --primary: #2fbf71;
+  --primary-soft: #1f8a52;
+  --accent: #f0b429;
+  --danger: #e5544d;
+  --receita: #2fbf71;
+  --despesa: #e5544d;
+  --invest: #4aa3e0;
+  --divida: #f0b429;
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--bg);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+.card {
+  background: var(--surface-solid);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #06231a;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  transition: opacity 0.15s ease;
+}
+.btn-primary:hover { opacity: 0.85; }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+}
+.btn-secondary:hover { background: var(--bg-soft); }
+
+.input {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--foreground);
+}
+.input:focus { outline: 1px solid var(--primary); }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
