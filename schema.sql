@@ -119,7 +119,8 @@ create table config (
   household_id uuid primary key references households(id) on delete cascade,
   meta_poupanca_pct numeric not null default 20,
   alerta_limite_pct numeric not null default 90,
-  meses_reserva_meta numeric not null default 6
+  meses_reserva_meta numeric not null default 6,
+  perfil_risco text not null default 'moderado' check (perfil_risco in ('conservador','moderado','arrojado'))
 );
 
 -- helper: usuario autenticado pertence ao household?
@@ -225,3 +226,6 @@ create policy metas_all on metas for all using (is_household_member(household_id
 -- );
 -- alter table metas enable row level security;
 -- create policy metas_all on metas for all using (is_household_member(household_id)) with check (is_household_member(household_id));
+
+-- MIGRACAO: perfil de risco para sugestao de alocacao (rodar 1x no banco existente)
+-- alter table config add column if not exists perfil_risco text not null default 'moderado' check (perfil_risco in ('conservador','moderado','arrojado'));

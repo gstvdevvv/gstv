@@ -53,6 +53,14 @@ export default async function ConfiguracoesPage() {
             <label className="text-xs text-[var(--muted)]">Meta de reserva (meses de custo fixo)</label>
             <input name="meses_reserva_meta" type="number" step="1" className="input" defaultValue={config.meses_reserva_meta} />
           </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[var(--muted)]">Perfil de investidor</label>
+            <select name="perfil_risco" className="input" defaultValue={config.perfil_risco}>
+              <option value="conservador">Conservador</option>
+              <option value="moderado">Moderado</option>
+              <option value="arrojado">Arrojado</option>
+            </select>
+          </div>
           <button type="submit" className="btn-primary col-span-2 w-fit">Salvar metas</button>
         </form>
       </div>

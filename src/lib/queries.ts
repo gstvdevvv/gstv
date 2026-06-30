@@ -184,6 +184,7 @@ export async function getConfig(householdId: string) {
     meta_poupanca_pct: 20,
     alerta_limite_pct: 90,
     meses_reserva_meta: 6,
+    perfil_risco: "moderado" as const,
     ...data,
   };
 }
