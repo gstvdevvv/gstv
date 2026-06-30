@@ -16,7 +16,7 @@ import { calcularIndicadores, calcularReserva } from "@/lib/indicadores";
 import { calcularScoreSaude } from "@/lib/score";
 import { calcularSequenciaPoupanca } from "@/lib/sequencia";
 import { MesSelector } from "@/components/MesSelector";
-import { BellRing, ShieldCheck, Gauge, HeartPulse, Flame } from "lucide-react";
+import { BellRing, ShieldCheck, Gauge, HeartPulse, Flame, Wallet, TrendingDown, Scale, PiggyBank, CreditCard } from "lucide-react";
 
 export default async function DashboardPage({
   searchParams,
@@ -241,11 +241,17 @@ export default async function DashboardPage({
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <KpiCard titulo="Receita do mês" valor={fmtBRL(receitaMes)} cor="var(--receita)" />
-        <KpiCard titulo="Gastos do mês" valor={fmtBRL(despesaMes)} cor="var(--despesa)" />
-        <KpiCard titulo="Saldo do mês" valor={fmtBRL(saldoMes)} cor={saldoMes >= 0 ? "var(--receita)" : "var(--despesa)"} sub={fmtPct(percentPoupanca) + " poupado"} />
-        <KpiCard titulo="Investido no mês" valor={fmtBRL(investidoMes)} cor="var(--invest)" />
-        <KpiCard titulo="Dívidas em aberto" valor={fmtBRL(saldoDividasTotal)} cor="var(--divida)" />
+        <KpiCard titulo="Receita do mês" valor={fmtBRL(receitaMes)} cor="var(--receita)" Icon={Wallet} />
+        <KpiCard titulo="Gastos do mês" valor={fmtBRL(despesaMes)} cor="var(--despesa)" Icon={CreditCard} />
+        <KpiCard
+          titulo="Saldo do mês"
+          valor={fmtBRL(saldoMes)}
+          cor={saldoMes >= 0 ? "var(--receita)" : "var(--despesa)"}
+          sub={fmtPct(percentPoupanca) + " poupado"}
+          Icon={Scale}
+        />
+        <KpiCard titulo="Investido no mês" valor={fmtBRL(investidoMes)} cor="var(--invest)" Icon={PiggyBank} />
+        <KpiCard titulo="Dívidas em aberto" valor={fmtBRL(saldoDividasTotal)} cor="var(--divida)" Icon={TrendingDown} />
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
