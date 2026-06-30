@@ -12,6 +12,7 @@ import {
   Lightbulb,
   Settings,
   Scale,
+  Coins,
 } from "lucide-react";
 
 const LINKS = [
@@ -20,6 +21,7 @@ const LINKS = [
   { href: "/cartoes", label: "Cartões", Icon: CreditCard },
   { href: "/dividas", label: "Dívidas", Icon: TrendingDown },
   { href: "/investimentos", label: "Investimentos", Icon: PiggyBank },
+  { href: "/cofrinhos", label: "Cofrinhos", Icon: Coins },
   { href: "/patrimonio", label: "Patrimônio Líquido", Icon: Scale },
   { href: "/metas", label: "Metas", Icon: Target },
   { href: "/dicas", label: "Dicas", Icon: Lightbulb },

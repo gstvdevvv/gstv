@@ -115,6 +115,27 @@ create table metas (
   created_at timestamptz not null default now()
 );
 
+create table cofrinhos (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null references households(id) on delete cascade,
+  nome text not null,
+  meta_valor numeric,
+  created_at timestamptz not null default now()
+);
+
+create table cofrinho_movimentos (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null references households(id) on delete cascade,
+  cofrinho_id uuid not null references cofrinhos(id) on delete cascade,
+  tipo text not null check (tipo in ('entrada','saida')),
+  valor numeric not null,
+  descricao text,
+  data date not null default current_date,
+  lancamento_id uuid references lancamentos(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+create index cofrinho_movimentos_cofrinho_idx on cofrinho_movimentos(cofrinho_id);
+
 create table config (
   household_id uuid primary key references households(id) on delete cascade,
   meta_poupanca_pct numeric not null default 20,
@@ -146,6 +167,8 @@ alter table dividas enable row level security;
 alter table pagamentos_divida enable row level security;
 alter table investimentos enable row level security;
 alter table metas enable row level security;
+alter table cofrinhos enable row level security;
+alter table cofrinho_movimentos enable row level security;
 alter table config enable row level security;
 
 create policy households_select on households for select using (is_household_member(id));
@@ -164,6 +187,8 @@ create policy pagamentos_divida_all on pagamentos_divida for all using (is_house
 create policy investimentos_all on investimentos for all using (is_household_member(household_id)) with check (is_household_member(household_id));
 create policy config_all on config for all using (is_household_member(household_id)) with check (is_household_member(household_id));
 create policy metas_all on metas for all using (is_household_member(household_id)) with check (is_household_member(household_id));
+create policy cofrinhos_all on cofrinhos for all using (is_household_member(household_id)) with check (is_household_member(household_id));
+create policy cofrinho_movimentos_all on cofrinho_movimentos for all using (is_household_member(household_id)) with check (is_household_member(household_id));
 
 -- SETUP MANUAL (rodar depois de criar os usuarios no Authentication > Users):
 -- 1) insert into households (nome) values ('Familia') returning id;
@@ -229,3 +254,28 @@ create policy metas_all on metas for all using (is_household_member(household_id
 
 -- MIGRACAO: perfil de risco para sugestao de alocacao (rodar 1x no banco existente)
 -- alter table config add column if not exists perfil_risco text not null default 'moderado' check (perfil_risco in ('conservador','moderado','arrojado'));
+
+-- MIGRACAO: cofrinhos (rodar 1x no banco existente)
+-- create table if not exists cofrinhos (
+--   id uuid primary key default gen_random_uuid(),
+--   household_id uuid not null references households(id) on delete cascade,
+--   nome text not null,
+--   meta_valor numeric,
+--   created_at timestamptz not null default now()
+-- );
+-- create table if not exists cofrinho_movimentos (
+--   id uuid primary key default gen_random_uuid(),
+--   household_id uuid not null references households(id) on delete cascade,
+--   cofrinho_id uuid not null references cofrinhos(id) on delete cascade,
+--   tipo text not null check (tipo in ('entrada','saida')),
+--   valor numeric not null,
+--   descricao text,
+--   data date not null default current_date,
+--   lancamento_id uuid references lancamentos(id) on delete set null,
+--   created_at timestamptz not null default now()
+-- );
+-- create index if not exists cofrinho_movimentos_cofrinho_idx on cofrinho_movimentos(cofrinho_id);
+-- alter table cofrinhos enable row level security;
+-- alter table cofrinho_movimentos enable row level security;
+-- create policy cofrinhos_all on cofrinhos for all using (is_household_member(household_id)) with check (is_household_member(household_id));
+-- create policy cofrinho_movimentos_all on cofrinho_movimentos for all using (is_household_member(household_id)) with check (is_household_member(household_id));

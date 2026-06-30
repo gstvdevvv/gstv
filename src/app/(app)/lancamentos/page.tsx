@@ -1,5 +1,5 @@
 import { getCurrentHousehold } from "@/lib/household";
-import { getCategorias, getLancamentosDoMes } from "@/lib/queries";
+import { getCategorias, getLancamentosDoMes, getCofrinhos } from "@/lib/queries";
 import { fmtBRL, mesRefAtual } from "@/lib/utils";
 import { MesSelector } from "@/components/MesSelector";
 import { NovoLancamentoForm } from "./NovoLancamentoForm";
@@ -18,9 +18,10 @@ export default async function LancamentosPage({
   const { mes } = await searchParams;
   const mesRef = mes || mesRefAtual();
 
-  const [categorias, lancamentos] = await Promise.all([
+  const [categorias, lancamentos, cofrinhos] = await Promise.all([
     getCategorias(household.householdId),
     getLancamentosDoMes(household.householdId, mesRef),
+    getCofrinhos(household.householdId),
   ]);
 
   const categoriaPorId = new Map(categorias.map((c) => [c.id, c]));
@@ -84,7 +85,7 @@ export default async function LancamentosPage({
         <MesSelector mesRef={mesRef} />
       </div>
 
-      <NovoLancamentoForm categorias={categorias} mesRef={mesRef} />
+      <NovoLancamentoForm categorias={categorias} mesRef={mesRef} cofrinhos={cofrinhos} />
 
       <Secao titulo="Receitas" cor="var(--receita)" Icon={ArrowUpCircle} itens={receitas} />
       <Secao titulo="Despesas Fixas" cor="var(--foreground)" Icon={Wallet} itens={fixas} />

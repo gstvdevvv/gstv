@@ -173,6 +173,42 @@ export async function getMetas(householdId: string): Promise<Meta[]> {
   return data ?? [];
 }
 
+export type Cofrinho = {
+  id: string;
+  nome: string;
+  meta_valor: number | null;
+};
+
+export type CofrinhoMovimento = {
+  id: string;
+  cofrinho_id: string;
+  tipo: "entrada" | "saida";
+  valor: number;
+  descricao: string | null;
+  data: string;
+  lancamento_id: string | null;
+};
+
+export async function getCofrinhos(householdId: string): Promise<Cofrinho[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("cofrinhos")
+    .select("id, nome, meta_valor")
+    .eq("household_id", householdId)
+    .order("nome");
+  return data ?? [];
+}
+
+export async function getMovimentosCofrinhos(householdId: string): Promise<CofrinhoMovimento[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("cofrinho_movimentos")
+    .select("*")
+    .eq("household_id", householdId)
+    .order("data", { ascending: false });
+  return data ?? [];
+}
+
 export async function getConfig(householdId: string) {
   const supabase = await createClient();
   const { data } = await supabase

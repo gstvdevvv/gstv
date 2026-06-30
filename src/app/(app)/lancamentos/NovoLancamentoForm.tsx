@@ -2,9 +2,17 @@
 
 import { useRef, useState } from "react";
 import { criarLancamento } from "./actions";
-import type { Categoria } from "@/lib/queries";
+import type { Categoria, Cofrinho } from "@/lib/queries";
 
-export function NovoLancamentoForm({ categorias, mesRef }: { categorias: Categoria[]; mesRef: string }) {
+export function NovoLancamentoForm({
+  categorias,
+  mesRef,
+  cofrinhos,
+}: {
+  categorias: Categoria[];
+  mesRef: string;
+  cofrinhos: Cofrinho[];
+}) {
   const [tipo, setTipo] = useState<"receita" | "despesa">("despesa");
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -65,6 +73,18 @@ export function NovoLancamentoForm({ categorias, mesRef }: { categorias: Categor
         <label className="text-xs text-[var(--muted)]">Forma pgto</label>
         <input name="forma_pagamento" className="input" placeholder="PIX, boleto..." />
       </div>
+
+      {tipo === "despesa" && cofrinhos.length > 0 && (
+        <div className="flex flex-col gap-1 col-span-2">
+          <label className="text-xs text-[var(--muted)]">Saiu de algum cofrinho?</label>
+          <select name="cofrinho_id" className="input" defaultValue="">
+            <option value="">Não — é um gasto novo</option>
+            {cofrinhos.map((c) => (
+              <option key={c.id} value={c.id}>{c.nome}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <button type="submit" className="btn-primary h-fit">Adicionar</button>
     </form>

@@ -10,19 +10,40 @@ export async function criarLancamento(formData: FormData) {
 
   const supabase = await createClient();
   const categoriaId = String(formData.get("categoria_id") || "");
+  const cofrinhoId = String(formData.get("cofrinho_id") || "");
+  const tipo = String(formData.get("tipo"));
+  const valorPrevisto = Number(formData.get("valor_previsto") || 0) || null;
+  const valorRealizado = Number(formData.get("valor_realizado") || 0) || null;
 
-  await supabase.from("lancamentos").insert({
-    household_id: household.householdId,
-    categoria_id: categoriaId || null,
-    tipo: String(formData.get("tipo")),
-    descricao: String(formData.get("descricao")),
-    valor_previsto: Number(formData.get("valor_previsto") || 0) || null,
-    valor_realizado: Number(formData.get("valor_realizado") || 0) || null,
-    data: String(formData.get("data")),
-    mes_ref: String(formData.get("mes_ref")),
-    forma_pagamento: String(formData.get("forma_pagamento") || "") || null,
-    recorrente: formData.get("recorrente") === "on",
-  });
+  const { data: lancamento } = await supabase
+    .from("lancamentos")
+    .insert({
+      household_id: household.householdId,
+      categoria_id: categoriaId || null,
+      tipo,
+      descricao: String(formData.get("descricao")),
+      valor_previsto: valorPrevisto,
+      valor_realizado: valorRealizado,
+      data: String(formData.get("data")),
+      mes_ref: String(formData.get("mes_ref")),
+      forma_pagamento: String(formData.get("forma_pagamento") || "") || null,
+      recorrente: formData.get("recorrente") === "on",
+    })
+    .select("id, descricao")
+    .single();
+
+  if (cofrinhoId && tipo === "despesa" && lancamento) {
+    await supabase.from("cofrinho_movimentos").insert({
+      household_id: household.householdId,
+      cofrinho_id: cofrinhoId,
+      tipo: "saida",
+      valor: valorRealizado ?? valorPrevisto ?? 0,
+      descricao: `Gasto: ${lancamento.descricao}`,
+      data: String(formData.get("data")),
+      lancamento_id: lancamento.id,
+    });
+    revalidatePath("/cofrinhos");
+  }
 
   revalidatePath("/lancamentos");
 }
