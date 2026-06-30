@@ -25,6 +25,16 @@ export default async function CartoesPage({
 
   const categoriaPorId = new Map(categorias.map((c) => [c.id, c]));
 
+  const totalFaturaMes = gastos.reduce((acc, g) => acc + Number(g.valor_total), 0);
+  const porCategoria = new Map<string, number>();
+  for (const g of gastos) {
+    const nome = categoriaPorId.get(g.categoria_id ?? "")?.nome ?? "Sem categoria";
+    porCategoria.set(nome, (porCategoria.get(nome) ?? 0) + Number(g.valor_total));
+  }
+  const categoriaDados = Array.from(porCategoria.entries())
+    .map(([categoria, valor]) => ({ categoria, valor, pct: totalFaturaMes > 0 ? (valor / totalFaturaMes) * 100 : 0 }))
+    .sort((a, b) => b.valor - a.valor);
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -67,6 +77,25 @@ export default async function CartoesPage({
         })}
         <div className="flex items-center"><NovoCartaoForm /></div>
       </div>
+
+      {categoriaDados.length > 0 && (
+        <div className="card p-4">
+          <p className="label-eyebrow mb-3">Gastos por categoria no cartão — fatura do mês</p>
+          <div className="flex flex-col gap-2.5">
+            {categoriaDados.map((c) => (
+              <div key={c.categoria} className="flex flex-col gap-1">
+                <div className="flex items-center justify-between text-sm">
+                  <span>{c.categoria}</span>
+                  <span className="num text-[var(--muted)]">{fmtBRL(c.valor)} · {c.pct.toFixed(1)}%</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-[var(--bg-soft)] overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: `${c.pct}%`, background: "var(--primary)" }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div>
         <p className="label-eyebrow mb-3">Lançar gasto no cartão</p>

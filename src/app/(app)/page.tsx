@@ -14,15 +14,23 @@ import { EvolucaoMensalChart, type PontoMensal } from "@/components/charts/Evolu
 import { CategoriaBarChart, type PontoCategoria } from "@/components/charts/CategoriaBarChart";
 import { calcularIndicadores, calcularReserva } from "@/lib/indicadores";
 import { calcularScoreSaude } from "@/lib/score";
-import { BellRing, ShieldCheck, Gauge, HeartPulse } from "lucide-react";
+import { calcularSequenciaPoupanca } from "@/lib/sequencia";
+import { MesSelector } from "@/components/MesSelector";
+import { BellRing, ShieldCheck, Gauge, HeartPulse, Flame } from "lucide-react";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ mes?: string }>;
+}) {
   const household = await getCurrentHousehold();
   if (!household) return null;
 
-  const ano = new Date().getFullYear();
-  const mesAtual = mesRefAtual();
-  const idxMesAtual = mesRefParaIndice(mesAtual);
+  const { mes } = await searchParams;
+  const mesSel = mes || mesRefAtual();
+  const ano = Number(mesSel.split("-")[0]);
+  const idxMesSel = mesRefParaIndice(mesSel);
+  const ehMesAtual = mesSel === mesRefAtual();
 
   const [categorias, lancamentosAno, dividas, pagamentos, investimentosAno, config] = await Promise.all([
     getCategorias(household.householdId),
@@ -34,7 +42,7 @@ export default async function DashboardPage() {
   ]);
 
   const categoriaPorId = new Map(categorias.map((c) => [c.id, c]));
-  const lancamentosMesAtual = lancamentosAno.filter((l) => l.mes_ref === mesAtual);
+  const lancamentosMesAtual = lancamentosAno.filter((l) => l.mes_ref === mesSel);
 
   const receitaMes = lancamentosMesAtual
     .filter((l) => l.tipo === "receita")
@@ -45,7 +53,7 @@ export default async function DashboardPage() {
   const saldoMes = receitaMes - despesaMes;
 
   const investidoMes = investimentosAno
-    .filter((i) => i.mes_ref === mesAtual)
+    .filter((i) => i.mes_ref === mesSel)
     .reduce((acc, i) => acc + Number(i.valor_aportado ?? 0), 0);
 
   const dividasAbertas = dividas.filter((d) => d.status !== "paga");
@@ -105,6 +113,7 @@ export default async function DashboardPage() {
     receitaAnualTotal: indicadores.receitaTotal,
     pctVariaveisPct: indicadores.pctVariaveisPct,
   });
+  const sequenciaPoupanca = calcularSequenciaPoupanca(lancamentosAno, mesRefAtual(), config.meta_poupanca_pct);
 
   // alertas
   const alertas: { texto: string; tipo: "alerta" | "info" }[] = [];
@@ -181,9 +190,14 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-2xl">{MESES[idxMesAtual]} {ano}</h1>
-        <p className="text-sm text-[var(--muted)]">Visão geral das finanças do casal</p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h1 className="font-display text-2xl">{MESES[idxMesSel]} {ano}</h1>
+          <p className="text-sm text-[var(--muted)]">
+            Visão geral das finanças do casal{!ehMesAtual && " — visualizando mês anterior/futuro"}
+          </p>
+        </div>
+        <MesSelector mesRef={mesSel} />
       </div>
 
       <div className="card p-4">
@@ -191,9 +205,16 @@ export default async function DashboardPage() {
           <p className="label-eyebrow flex items-center gap-1.5">
             <HeartPulse size={13} /> Score de saúde financeira
           </p>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-display num">{score.notaFinal}</span>
-            <span className="text-sm text-[var(--muted)]">/100 · {score.classificacao}</span>
+          <div className="flex items-center gap-3">
+            {sequenciaPoupanca > 0 && (
+              <span className="badge flex items-center gap-1 text-[var(--primary)]">
+                <Flame size={13} /> {sequenciaPoupanca} {sequenciaPoupanca === 1 ? "mês" : "meses"} batendo a meta
+              </span>
+            )}
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-display num">{score.notaFinal}</span>
+              <span className="text-sm text-[var(--muted)]">/100 · {score.classificacao}</span>
+            </div>
           </div>
         </div>
         <div className="h-2 rounded-full bg-[var(--bg-soft)] overflow-hidden mb-4">
@@ -299,7 +320,7 @@ export default async function DashboardPage() {
           <EvolucaoMensalChart dados={evolucao} />
         </div>
         <div className="card p-4">
-          <p className="label-eyebrow mb-3">Gastos por categoria — {MESES[idxMesAtual]}</p>
+          <p className="label-eyebrow mb-3">Gastos por categoria — {MESES[idxMesSel]}</p>
           {categoriaDados.length > 0 ? (
             <CategoriaBarChart dados={categoriaDados} />
           ) : (
@@ -311,7 +332,7 @@ export default async function DashboardPage() {
       {fixosDados.length > 0 && (
         <div className="card p-4">
           <div className="flex items-center justify-between mb-3">
-            <p className="label-eyebrow">Custos fixos — {MESES[idxMesAtual]}</p>
+            <p className="label-eyebrow">Custos fixos — {MESES[idxMesSel]}</p>
             <p className={`text-sm font-medium num ${pctFixoRenda > 50 ? "text-[var(--danger)]" : "text-[var(--muted)]"}`}>
               {fmtBRL(totalFixoMes)} · {fmtPct(pctFixoRenda)} da renda
             </p>
@@ -356,7 +377,7 @@ export default async function DashboardPage() {
           </thead>
           <tbody>
             {resumoAnual.map((r) => (
-              <tr key={r.mes} className={`border-b border-[var(--border-soft)] ${r.idx === idxMesAtual ? "bg-[var(--bg-soft)]" : ""}`}>
+              <tr key={r.mes} className={`border-b border-[var(--border-soft)] ${r.idx === idxMesSel ? "bg-[var(--bg-soft)]" : ""}`}>
                 <td className="py-1.5 pr-2">{r.mes}</td>
                 <td className="py-1.5 pr-2 text-right num text-[var(--receita)]">{fmtBRL(r.receita)}</td>
                 <td className="py-1.5 pr-2 text-right num">{fmtBRL(r.fixas)}</td>

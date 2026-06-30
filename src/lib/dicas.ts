@@ -145,6 +145,22 @@ export function gerarDicas({
     }
   }
 
+  // 3b) anomalia no gasto total do mes vs media movel dos 3 meses anteriores
+  const ultimosTresMeses = mesesAnteriores.slice(-3);
+  if (ultimosTresMeses.length === 3) {
+    const totalDespesaNoMes = (ref: string) =>
+      lancamentosAno.filter((l) => l.mes_ref === ref && l.tipo === "despesa").reduce((a, l) => a + Number(l.valor_realizado ?? l.valor_previsto ?? 0), 0);
+    const mediaMovel = ultimosTresMeses.reduce((a, ref) => a + totalDespesaNoMes(ref), 0) / 3;
+    if (mediaMovel > 0 && despesaMes > mediaMovel * 1.25) {
+      const pctAcima = ((despesaMes - mediaMovel) / mediaMovel) * 100;
+      dicas.push({
+        titulo: "Gasto total do mês fora do padrão",
+        texto: `O total de despesas deste mês (${fmtBRL(despesaMes)}) está ${fmtPct(pctAcima)} acima da média dos 3 meses anteriores (${fmtBRL(mediaMovel)}). Vale revisar lançamentos e gastos no cartão antes que se torne um padrão.`,
+        tipo: "alerta",
+      });
+    }
+  }
+
   // 4) dividas sem negociacao
   const semNegociacao = dividas.filter((d) => {
     const { saldo } = calcularPlano(d, pagamentos);
