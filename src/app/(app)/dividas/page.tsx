@@ -1,6 +1,6 @@
 import { getCurrentHousehold } from "@/lib/household";
 import { getDividas, getPagamentosDivida } from "@/lib/queries";
-import { calcularPlano, ordenarPorPrioridade } from "@/lib/planoPagamento";
+import { calcularPlano, ordenarPorPrioridade, gerarPlanoEstrategico } from "@/lib/planoPagamento";
 import { fmtBRL, mesRefLabel } from "@/lib/utils";
 import { NovaDividaForm } from "./NovaDividaForm";
 import { DividaCard } from "./DividaCard";
@@ -19,6 +19,7 @@ export default async function DividasPage() {
   const saldoTotal = dividas.reduce((acc, d) => acc + calcularPlano(d, pagamentos).saldo, 0);
   const pagoTotal = dividas.reduce((acc, d) => acc + calcularPlano(d, pagamentos).pago, 0);
   const prioridades = ordenarPorPrioridade(dividas, pagamentos);
+  const planoEstrategico = gerarPlanoEstrategico(dividas, pagamentos);
   const mesQuitacaoGeral = prioridades.length > 0
     ? prioridades.reduce((maior, x) => {
         if (!x.plano.mesRefFimPrevisto) return maior;
@@ -41,15 +42,29 @@ export default async function DividasPage() {
         <KpiCard titulo="Quitação total prevista" valor={mesQuitacaoGeral ? mesRefLabel(mesQuitacaoGeral) : "—"} />
       </div>
 
-      {prioridades.length > 0 && (
+      {planoEstrategico.passos.length > 0 && (
         <div className="card p-4">
           <p className="label-eyebrow mb-1.5 flex items-center gap-1.5">
-            <ListOrdered size={13} /> Ordem sugerida de pagamento
+            <ListOrdered size={13} /> Plano estratégico de quitação
           </p>
-          <p className="text-sm text-[var(--muted)]">
-            Prioriza dívidas sem negociação e, entre as negociadas, as de menor saldo primeiro (método bola de neve) —
-            quita mais rápido e libera fôlego no orçamento.
-          </p>
+          <p className="text-sm text-[var(--muted)] mb-3">{planoEstrategico.economiaResumo}</p>
+          <ol className="flex flex-col gap-2">
+            {planoEstrategico.passos.map((p) => (
+              <li key={p.credor} className="text-sm border-b border-[var(--border)]/40 pb-2 flex items-start gap-2">
+                <span className="num text-[var(--muted)] shrink-0">{p.ordem}.</span>
+                <span>
+                  <span
+                    className={`badge mr-2 ${
+                      p.risco === "critico" || p.risco === "alto" ? "text-[var(--danger)]" : "text-[var(--muted)]"
+                    }`}
+                  >
+                    {p.riscoLabel}
+                  </span>
+                  {p.acao}
+                </span>
+              </li>
+            ))}
+          </ol>
         </div>
       )}
 

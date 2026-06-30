@@ -13,7 +13,8 @@ import { KpiCard } from "@/components/KpiCard";
 import { EvolucaoMensalChart, type PontoMensal } from "@/components/charts/EvolucaoMensalChart";
 import { CategoriaBarChart, type PontoCategoria } from "@/components/charts/CategoriaBarChart";
 import { calcularIndicadores, calcularReserva } from "@/lib/indicadores";
-import { BellRing, ShieldCheck, Gauge } from "lucide-react";
+import { calcularScoreSaude } from "@/lib/score";
+import { BellRing, ShieldCheck, Gauge, HeartPulse } from "lucide-react";
 
 export default async function DashboardPage() {
   const household = await getCurrentHousehold();
@@ -95,6 +96,15 @@ export default async function DashboardPage() {
   // indicadores fixos do ano + reserva de emergencia
   const indicadores = calcularIndicadores(lancamentosAno, categorias);
   const reserva = calcularReserva(investimentosAno, indicadores.despesaFixaMediaMensal, config.meses_reserva_meta);
+  const score = calcularScoreSaude({
+    taxaPoupancaPct: indicadores.taxaPoupancaPct,
+    pctFixasPct: indicadores.pctFixasPct,
+    mesesCoberturaReserva: reserva.mesesCobertura,
+    mesesMetaReserva: reserva.mesesMeta,
+    saldoDividasTotal,
+    receitaAnualTotal: indicadores.receitaTotal,
+    pctVariaveisPct: indicadores.pctVariaveisPct,
+  });
 
   // alertas
   const alertas: { texto: string; tipo: "alerta" | "info" }[] = [];
@@ -174,6 +184,39 @@ export default async function DashboardPage() {
       <div>
         <h1 className="font-display text-2xl">{MESES[idxMesAtual]} {ano}</h1>
         <p className="text-sm text-[var(--muted)]">Visão geral das finanças do casal</p>
+      </div>
+
+      <div className="card p-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="label-eyebrow flex items-center gap-1.5">
+            <HeartPulse size={13} /> Score de saúde financeira
+          </p>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-display num">{score.notaFinal}</span>
+            <span className="text-sm text-[var(--muted)]">/100 · {score.classificacao}</span>
+          </div>
+        </div>
+        <div className="h-2 rounded-full bg-[var(--bg-soft)] overflow-hidden mb-4">
+          <div
+            className="h-full rounded-full"
+            style={{
+              width: `${score.notaFinal}%`,
+              background: score.notaFinal >= 60 ? "var(--receita)" : score.notaFinal >= 40 ? "var(--primary)" : "var(--danger)",
+            }}
+          />
+        </div>
+        <div className="grid md:grid-cols-2 gap-3">
+          {score.componentes.map((c) => (
+            <div key={c.nome} className="text-sm">
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-medium">{c.nome}</span>
+                <span className="num text-[var(--muted)]">{Math.round(c.nota)}/100</span>
+              </div>
+              <p className="text-xs text-[var(--muted)]">{c.explicacao}</p>
+              <p className="text-xs text-[var(--muted)] italic mt-0.5">{c.recomendacao}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
