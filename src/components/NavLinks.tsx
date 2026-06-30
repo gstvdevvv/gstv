@@ -8,6 +8,7 @@ import {
   CreditCard,
   TrendingDown,
   PiggyBank,
+  Target,
   Lightbulb,
   Settings,
 } from "lucide-react";
@@ -18,6 +19,7 @@ const LINKS = [
   { href: "/cartoes", label: "Cartões", Icon: CreditCard },
   { href: "/dividas", label: "Dívidas", Icon: TrendingDown },
   { href: "/investimentos", label: "Investimentos", Icon: PiggyBank },
+  { href: "/metas", label: "Metas", Icon: Target },
   { href: "/dicas", label: "Dicas", Icon: Lightbulb },
   { href: "/configuracoes", label: "Configurações", Icon: Settings },
 ];

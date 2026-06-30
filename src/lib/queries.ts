@@ -154,6 +154,25 @@ export async function getGastosCartaoDoMes(householdId: string, mesRef: string):
   return data ?? [];
 }
 
+export type Meta = {
+  id: string;
+  nome: string;
+  categoria: string;
+  valor_alvo: number;
+  valor_atual: number;
+  prazo: string | null;
+};
+
+export async function getMetas(householdId: string): Promise<Meta[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("metas")
+    .select("*")
+    .eq("household_id", householdId)
+    .order("prazo", { ascending: true, nullsFirst: false });
+  return data ?? [];
+}
+
 export async function getConfig(householdId: string) {
   const supabase = await createClient();
   const { data } = await supabase

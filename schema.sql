@@ -104,6 +104,17 @@ create table investimentos (
 );
 create index investimentos_household_mes_idx on investimentos(household_id, mes_ref);
 
+create table metas (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid not null references households(id) on delete cascade,
+  nome text not null,
+  categoria text not null,
+  valor_alvo numeric not null,
+  valor_atual numeric not null default 0,
+  prazo date,
+  created_at timestamptz not null default now()
+);
+
 create table config (
   household_id uuid primary key references households(id) on delete cascade,
   meta_poupanca_pct numeric not null default 20,
@@ -133,6 +144,7 @@ alter table gastos_cartao enable row level security;
 alter table dividas enable row level security;
 alter table pagamentos_divida enable row level security;
 alter table investimentos enable row level security;
+alter table metas enable row level security;
 alter table config enable row level security;
 
 create policy households_select on households for select using (is_household_member(id));
@@ -150,6 +162,7 @@ create policy dividas_all on dividas for all using (is_household_member(househol
 create policy pagamentos_divida_all on pagamentos_divida for all using (is_household_member(household_id)) with check (is_household_member(household_id));
 create policy investimentos_all on investimentos for all using (is_household_member(household_id)) with check (is_household_member(household_id));
 create policy config_all on config for all using (is_household_member(household_id)) with check (is_household_member(household_id));
+create policy metas_all on metas for all using (is_household_member(household_id)) with check (is_household_member(household_id));
 
 -- SETUP MANUAL (rodar depois de criar os usuarios no Authentication > Users):
 -- 1) insert into households (nome) values ('Familia') returning id;
@@ -198,3 +211,17 @@ create policy config_all on config for all using (is_household_member(household_
 
 -- MIGRACAO: meta de reserva de emergencia (rodar 1x no banco existente)
 -- alter table config add column if not exists meses_reserva_meta numeric not null default 6;
+
+-- MIGRACAO: central de metas (rodar 1x no banco existente)
+-- create table if not exists metas (
+--   id uuid primary key default gen_random_uuid(),
+--   household_id uuid not null references households(id) on delete cascade,
+--   nome text not null,
+--   categoria text not null,
+--   valor_alvo numeric not null,
+--   valor_atual numeric not null default 0,
+--   prazo date,
+--   created_at timestamptz not null default now()
+-- );
+-- alter table metas enable row level security;
+-- create policy metas_all on metas for all using (is_household_member(household_id)) with check (is_household_member(household_id));
