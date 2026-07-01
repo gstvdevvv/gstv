@@ -3,6 +3,7 @@ import { getCategorias, getConfig } from "@/lib/queries";
 import { fmtBRL } from "@/lib/utils";
 import { detectarCategoriasDuplicadas } from "@/lib/indicadores";
 import { CategoriaForm } from "./CategoriaForm";
+import { AlterarSenhaForm } from "./AlterarSenhaForm";
 import { excluirCategoria, atualizarMetas } from "./actions";
 import { AlertTriangle } from "lucide-react";
 
@@ -36,6 +37,11 @@ export default async function ConfiguracoesPage() {
           Para adicionar outro membro, crie o usuário em Authentication &gt; Users no painel do Supabase e vincule-o
           na tabela <code>usuarios_household</code> com este <code>household_id</code>.
         </p>
+      </div>
+
+      <div className="card p-4">
+        <p className="font-semibold mb-3">Alterar senha</p>
+        <AlterarSenhaForm />
       </div>
 
       <div className="card p-4">
